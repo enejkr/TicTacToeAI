@@ -13,7 +13,7 @@ void makeMove(BoardState &state, int x, int y);
 
 bool checkWin(const BoardState &state);
 
-int maksMinAlfaBeta(const BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer);
+int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer);
 
 int basicEvaluation(const BoardState &state);
 
