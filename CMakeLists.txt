@@ -20,3 +20,4 @@ target_link_libraries(TicTacToeAI PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 # Qt test executable
 add_executable(QtTest qt_test.cpp)
 target_link_libraries(QtTest PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+

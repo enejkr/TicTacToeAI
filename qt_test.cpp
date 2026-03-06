@@ -1,9 +1,9 @@
 #include <QApplication>
-#include <QWidget>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QMessageBox>
+#include <QWidget>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
