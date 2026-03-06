@@ -128,49 +128,43 @@ void makeMove(BoardState &state, int x, int y) {
     }
 }
 
-int countFavorableLines(const BoardState &state) {
+int countFavorableLines(const BoardState &state, int player) {
+    int opponent = (player == 1) ? 2 : 1;
     int count = 0;
 
-    // check row and column lines for the current player
+    //helper lamda check if line is open for playe
+    auto lineOpen = [&](int a, int b, int c) -> bool {
+        return state.board[a] != opponent &&
+               state.board[b] != opponent &&
+               state.board[c] != opponent &&
+               (state.board[a] == player || state.board[b] == player || state.board[c] == player);
+    };
+
     for (int i = 0; i < 3; i++) {
-        // Check rows
-        if ((state.board[i * 3 + 0] == state.turn && state.board[i * 3 + 1] == state.turn && state.board[i * 3 + 2] == 0) ||
-            (state.board[i * 3 + 0] == state.turn && state.board[i * 3 + 1] == 0 && state.board[i * 3 + 2] == state.turn) ||
-            (state.board[i * 3 + 0] == 0 && state.board[i * 3 + 1] == state.turn && state.board[i * 3 + 2] == state.turn)) {
+        //row
+        if (lineOpen(i*3, i*3+1, i*3+2)){
             count++;
         }
-        // Check columns
-        if ((state.board[0 * 3 + i] == state.turn && state.board[1 * 3 + i] == state.turn && state.board[2 * 3 + i] == 0) ||
-            (state.board[0 * 3 + i] == state.turn && state.board[1 * 3 + i] == 0 && state.board[2 * 3 + i] == state.turn) ||
-            (state.board[0 * 3 + i] == 0 && state.board[1 * 3 + i] == state.turn && state.board[2 * 3 + i] == state.turn)) {
+        // columns
+        if (lineOpen(i, i+3, i+6)) {
             count++;
         }
     }
-    // Check diagonals
-    if (state.board[0] == state.turn && state.board[4] == state.turn && state.board[8] == 0 ||
-        state.board[0] == state.turn && state.board[4] == 0 && state.board[8] == state.turn ||
-        state.board[0] == 0 && state.board[4] == state.turn && state.board[8] == state.turn) {
-        count++;
-    }
-    if (state.board[2] == state.turn && state.board[4] == state.turn && state.board[6] == 0 ||
-        state.board[2] == state.turn && state.board[4] == 0 && state.board[6] == state.turn ||
-        state.board[2] == 0 && state.board[4] == state.turn && state.board[6] == state.turn) {
-        count++;
-    }
+    // diagonals
+    if (lineOpen(0, 4, 8)) count++;
+    if (lineOpen(2, 4, 6)) count++;
+
     return count;
 }
+//basic heuristic function
 int basicEvaluation(const BoardState &state) {
     if (checkWin(state)) {
-        // state.turn has already been flipped after the last move
-        // state.turn == 1 means O just moved and won -> -10
-        // state.turn == 2 means X just moved and won -> +10
-        return (state.turn == 1) ? -11 : 11;
+        return (state.turn == 1) ? -100 : 100;
     }
-    int count =  countFavorableLines(state);
-    cout << drawBoard(state) << "Favorable lines for player " << state.turn << ": " << count << '\n';
-    return (state.turn == 1) ? -count : count;
-
-
+    // account for open lines
+    int xLines = countFavorableLines(state, 1);
+    int oLines = countFavorableLines(state, 2);
+    return xLines - oLines;
 }
 
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
