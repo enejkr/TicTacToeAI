@@ -3,7 +3,8 @@ using namespace std;
 
 struct BoardState {
     vector<int> board;
-    int turn = 1; // 1 for X, 2 for O
+    // 1 for X, 2 for O
+    int turn = 1;
 };
 
 string drawBoard(const BoardState &state);
@@ -12,7 +13,7 @@ void makeMove(BoardState &state, int x, int y);
 
 bool checkWin(const BoardState &state);
 
-int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer);
+int maksMinAlfaBeta(const BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer);
 
 int basicEvaluation(const BoardState &state);
 
@@ -136,7 +137,6 @@ int countFavorableLines(const BoardState &state, int player) {
     int opponent = (player == 1) ? 2 : 1;
     int count = 0;
 
-    //helper lamda check if line is open for playe
     auto lineOpen = [&](int a, int b, int c) -> bool {
         return state.board[a] != opponent &&
                state.board[b] != opponent &&
