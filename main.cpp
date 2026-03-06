@@ -203,6 +203,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
                 max_eval = max(max_eval, eval);
                 alpha = max(alpha, eval);
+
                 if (beta <= alpha) break;
             }
         }
@@ -217,6 +218,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
                 min_eval = min(min_eval, eval);
                 beta = min(beta, eval);
+
                 if (beta <= alpha) break;
             }
         }
