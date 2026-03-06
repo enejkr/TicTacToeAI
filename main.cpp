@@ -164,7 +164,7 @@ int countFavorableLines(const BoardState &state, int player) {
 //basic heuristic function
 int basicEvaluation(const BoardState &state) {
     if (checkWin(state)) {
-        return (state.turn == 1) ? -100 : 100;
+        return (state.turn == 1) ? -INT_MIN : INT_MAX;
     }
     // account for open lines
     int xLines = countFavorableLines(state, 1);
