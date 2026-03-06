@@ -43,7 +43,11 @@ int main() {
         // Check draw
         bool anyEmpty = false;
         // preverimo draw con
-        for (int el : board.board) if (el == 0) { anyEmpty = true; break; }
+        for (int el: board.board)
+            if (el == 0) {
+                anyEmpty = true;
+                break;
+            }
         if (!anyEmpty) {
             cout << "It's a draw!\n";
             break;
@@ -117,9 +121,9 @@ bool checkWin(const BoardState &state) {
 }
 
 void makeMove(BoardState &state, int x, int y) {
-    //
-    //
-    //
+    // 0 1 2
+    // 3 4 5
+    // 6 7 8
     if (state.board[x * 3 + y] == 0) {
         state.board[x * 3 + y] = state.turn;
         state.turn = (state.turn == 1) ? 2 : 1; // Switch turns
@@ -142,11 +146,11 @@ int countFavorableLines(const BoardState &state, int player) {
 
     for (int i = 0; i < 3; i++) {
         //row
-        if (lineOpen(i*3, i*3+1, i*3+2)){
+        if (lineOpen(i * 3, i * 3 + 1, i * 3 + 2)) {
             count++;
         }
         // columns
-        if (lineOpen(i, i+3, i+6)) {
+        if (lineOpen(i, i + 3, i + 6)) {
             count++;
         }
     }
@@ -156,6 +160,7 @@ int countFavorableLines(const BoardState &state, int player) {
 
     return count;
 }
+
 //basic heuristic function
 int basicEvaluation(const BoardState &state) {
     if (checkWin(state)) {
@@ -166,7 +171,12 @@ int basicEvaluation(const BoardState &state) {
     int oLines = countFavorableLines(state, 2);
     return xLines - oLines;
 }
-
+// MinMax with alpha-beta pruning
+// state: current board state
+// depth: how many moves ahead to evaluate
+// alpha: best score for maximizing player
+// beta: best score for minimizing player
+// maximizingPlayer: true if it's the maximizing player's turn (X), false for minimizing player (O)
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
     if (checkWin(state) || depth == 0) {
         return basicEvaluation(state);
@@ -174,10 +184,14 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
     // Check for draw (no empty cells)
     bool hasEmpty = false;
     for (int i = 0; i < 9; ++i) {
-        if (state.board[i] == 0) { hasEmpty = true; break; }
+        if (state.board[i] == 0) {
+            hasEmpty = true;
+            break;
+        }
     }
+    // draw or depth limit with no win
     if (!hasEmpty || depth == 0) {
-        return 0; // draw or depth limit with no win
+        return 0;
     }
     if (maximizingPlayer) {
         int max_eval = INT_MIN;
@@ -209,4 +223,3 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
         return min_eval;
     }
 }
-
