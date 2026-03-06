@@ -3,7 +3,7 @@ using namespace std;
 
 struct BoardState {
     vector<int> board;
-    int turn; // 1 for X, 2 for O
+    int turn = 1; // 1 for X, 2 for O
 };
 
 string drawBoard(const BoardState &state);
@@ -17,16 +17,19 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
 int basicEvaluation(const BoardState &state);
 
 int main() {
-    bool game_over = false;
-    // initilaze board
+    // initialize board
     BoardState board;
     board.board.assign(9, 0);
     board.turn = 1;
-    while (!game_over) {
+    int depth = 0;
+    while (true) {
+        if (depth == 0) {
+            cout << "Enter search depth for AI: " << '\n';
+            cin >> depth;
+        }
         int x, y;
-        cout << drawBoard(board) << endl;
+        cout << drawBoard(board) << '\n';
         if (checkWin(board)) {
-            game_over = true;
             break;
         }
         if (board.turn == 1) {
@@ -34,9 +37,26 @@ int main() {
             cin >> x >> y;
             makeMove(board, x, y);
         } else {
-            cout << "Player O's turn. Enter row and column (0-2): ";
-            cin >> x >> y;
-            makeMove(board, x, y);
+            // AI plays as O (minimizing player)
+            int best_score = INT_MAX;
+            int best_move = -1;
+            for (int i = 0; i < 9; ++i) {
+                if (board.board[i] == 0) {
+                    BoardState new_state = board;
+                    new_state.board[i] = 2;
+                    new_state.turn = 1;
+                    int score = maksMinAlfaBeta(new_state, depth - 1, INT_MIN, INT_MAX, true);
+                    if (score < best_score) {
+                        best_score = score;
+                        best_move = i;
+                    }
+                }
+            }
+            if (best_move != -1) {
+                board.board[best_move] = 2;
+                board.turn = 1;
+                cout << "AI plays at row " << best_move / 3 << " col " << best_move % 3 << '\n';
+            }
         }
     }
     return 0;
@@ -81,60 +101,50 @@ void makeMove(BoardState &state, int x, int y) {
         state.board[x * 3 + y] = state.turn;
         state.turn = (state.turn == 1) ? 2 : 1; // Switch turns
     } else {
-        cout << "Cell already occupied. Try again." << endl;
+        cout << "Cell already occupied. Try again." << '\n';
     }
 }
 
 int basicEvaluation(const BoardState &state) {
-    int current_player = state.turn;
     if (checkWin(state)) {
-        return 1; // Current player wins
+        // The player who just moved (opposite of state.turn) has won
+        return (state.turn == 1) ? -10 : 10; // O just won -> -10, X just won -> +10
     }
-    //canot be determend
-    return 0; // Placeholder: return 1 if current player wins, -1 if loses, 0 for draw or ongoing game
-
+    return 0;
 }
 
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
-    int max_eval;
-    int min_eval;
-    int eval;
-    if (depth == 0) {
+    if (checkWin(state) || depth == 0) {
         return basicEvaluation(state);
     }
-    // maximizing player is X
     if (maximizingPlayer) {
-        max_eval = INT_MIN;
-        for (int i = 0; i < state.board.size(); ++i) {
+        int max_eval = INT_MIN;
+        for (int i = 0; i < (int)state.board.size(); ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
                 new_state.board[i] = 1;
-                eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
+                new_state.turn = 2;
+                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
                 max_eval = max(max_eval, eval);
                 alpha = max(alpha, eval);
-                if (beta <= alpha) {
-                    break; // Beta cut-off
-                }
-                return max_eval;
+                if (beta <= alpha) break;
             }
         }
-    }
-    //maximaizing player is O
-    else {
-        min_eval = INT_MAX;
-        for (int i = 0; i < state.board.size(); ++i) {
+        return max_eval;
+    } else {
+        int min_eval = INT_MAX;
+        for (int i = 0; i < (int)state.board.size(); ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
                 new_state.board[i] = 2;
-                eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
+                new_state.turn = 1;
+                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
                 min_eval = min(min_eval, eval);
                 beta = min(beta, eval);
-                if (beta <= alpha) {
-                    break; // Alpha cut-off
-                }
-                return min_eval;
+                if (beta <= alpha) break;
             }
         }
+        return min_eval;
     }
-    return 0; // Placeholder: return the best score for the current player and best turn
 }
+
