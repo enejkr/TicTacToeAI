@@ -30,6 +30,15 @@ int main() {
         int x, y;
         cout << drawBoard(board) << '\n';
         if (checkWin(board)) {
+            // board.turn was already flipped after the winning move
+            cout << ((board.turn == 1) ? "O wins!" : "X wins!") << '\n';
+            break;
+        }
+        // Check draw
+        bool anyEmpty = false;
+        for (int c : board.board) if (c == 0) { anyEmpty = true; break; }
+        if (!anyEmpty) {
+            cout << "It's a draw!\n";
             break;
         }
         if (board.turn == 1) {
@@ -107,19 +116,29 @@ void makeMove(BoardState &state, int x, int y) {
 
 int basicEvaluation(const BoardState &state) {
     if (checkWin(state)) {
-        // The player who just moved (opposite of state.turn) has won
-        return (state.turn == 1) ? -10 : 10; // O just won -> -10, X just won -> +10
+        // state.turn has already been flipped after the last move
+        // state.turn == 1 means O just moved and won -> -10
+        // state.turn == 2 means X just moved and won -> +10
+        return (state.turn == 1) ? -10 : 10;
     }
     return 0;
 }
 
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
-    if (checkWin(state) || depth == 0) {
+    if (checkWin(state)) {
         return basicEvaluation(state);
+    }
+    // Check for draw (no empty cells)
+    bool hasEmpty = false;
+    for (int i = 0; i < 9; ++i) {
+        if (state.board[i] == 0) { hasEmpty = true; break; }
+    }
+    if (!hasEmpty || depth == 0) {
+        return 0; // draw or depth limit with no win
     }
     if (maximizingPlayer) {
         int max_eval = INT_MIN;
-        for (int i = 0; i < (int)state.board.size(); ++i) {
+        for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
                 new_state.board[i] = 1;
@@ -133,7 +152,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
         return max_eval;
     } else {
         int min_eval = INT_MAX;
-        for (int i = 0; i < (int)state.board.size(); ++i) {
+        for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
                 new_state.board[i] = 2;
