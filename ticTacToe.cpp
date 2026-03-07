@@ -108,32 +108,34 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
     if (depth == 0) {
         return basicEvaluation(state);
     }
-
+    // X igra
     if (maximizingPlayer) {
         int max_eval = INT_MIN;
         for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
-                new_state.board[i] = 1; // X igra
+                new_state.board[i] = 1;
                 new_state.turn = 2;
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
                 max_eval = max(max_eval, eval);
                 alpha = max(alpha, eval);
-                if (beta <= alpha) break; // beta cut-off
+                if (beta <= alpha) break;
             }
         }
         return max_eval;
-    } else {
+    }
+    // O igra
+    else {
         int min_eval = INT_MAX;
         for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
-                new_state.board[i] = 2; // O igra
+                new_state.board[i] = 2;
                 new_state.turn = 1;
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
                 min_eval = min(min_eval, eval);
                 beta = min(beta, eval);
-                if (beta <= alpha) break; // alpha cut-off
+                if (beta <= alpha) break;
             }
         }
         return min_eval;
