@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
                 if (checkWin(*gameState)) {
                     // turn was flipped after makeMove, so the winner is the opposite
                     statusLabel->setText("X wins!");
+                    statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: green;");
                     *gameOver = true;
                     disableAllButtons(buttons);
                     playButton->setEnabled(true);
@@ -112,6 +113,7 @@ int main(int argc, char *argv[]) {
                 // Check draw
                 if (isBoardFull(*gameState)) {
                     statusLabel->setText("It's a draw!");
+                    statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
                     *gameOver = true;
                     disableAllButtons(buttons);
                     playButton->setEnabled(true);
@@ -145,6 +147,7 @@ int main(int argc, char *argv[]) {
                 // Check if AI won
                 if (checkWin(*gameState)) {
                     statusLabel->setText("O wins!");
+                    statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: red;");
                     *gameOver = true;
                     disableAllButtons(buttons);
                     playButton->setEnabled(true);
@@ -153,6 +156,7 @@ int main(int argc, char *argv[]) {
                 // Check draw after AI move
                 if (isBoardFull(*gameState)) {
                     statusLabel->setText("It's a draw!");
+                    statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
                     *gameOver = true;
                     disableAllButtons(buttons);
                     playButton->setEnabled(true);
@@ -160,6 +164,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 statusLabel->setText("Your turn (X)");
+                statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
             });
     }
 
@@ -182,6 +187,7 @@ int main(int argc, char *argv[]) {
             playButton->setText("Restart");
             newDepthButton->setEnabled(true);
             statusLabel->setText("Your turn (X)");
+            statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
         });
 
     // Set New Depth button - resets everything back to initial state
@@ -203,6 +209,7 @@ int main(int argc, char *argv[]) {
             playButton->setEnabled(true);
             newDepthButton->setEnabled(false);
             statusLabel->setText("Set depth and press Play!");
+            statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
         });
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
