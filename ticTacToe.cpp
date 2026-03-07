@@ -77,7 +77,7 @@ int basicEvaluation(const BoardState &state) {
     int oLines = countFavorableLines(state, 2);
     return xLines - oLines;
 }
-
+// IIMPOTANT SMALLER IS BETTER FOR AI (O) AND LARGER IS BETTER FOR PLAYER (X)
 // MinMax with alpha-beta pruning
 // state: current board state
 // depth: how many moves ahead to evaluate
@@ -91,7 +91,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
         BoardState tmp = state;
         tmp.turn = 1;
         if (checkWin(tmp)) {
-            return 1000 + depth;
+            return -1000 - depth;
         }
     }
     //O
@@ -99,7 +99,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
         BoardState tmp = state;
         tmp.turn = 2;
         if (checkWin(tmp)) {
-            return -1000 - depth;
+            return 1000 + depth;
         }
     }
     //preverim draw
