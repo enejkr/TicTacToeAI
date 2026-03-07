@@ -15,7 +15,7 @@ struct BoardState {
 };
 
 // Free function declarations
-bool checkWin(const BoardState &state);
+int checkWin(const BoardState &state);
 void makeMove(BoardState &state, int x, int y);
 void makeMove(BoardState &state, int index);
 int countFavorableLines(const BoardState &state, int player);

@@ -19,9 +19,9 @@ int main() {
         // izrišemo trenutno stanje plošče
         cout << drawBoard(board) << '\n';
         // preverimo win con
-        if (checkWin(board)) {
-            // board.turn was already flipped after the winning move
-            cout << ((board.turn == 1) ? "O wins!" : "X wins!") << '\n';
+        int winner = checkWin(board);
+        if (winner != 0) {
+            cout << (winner == 1 ? "X wins!" : "O wins!") << '\n';
             break;
         }
         // Check draw

@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
                 updateButtons(*gameState, buttons);
 
                 // Check if player won
-                if (checkWin(*gameState)) {
+                if (checkWin(*gameState) != 0) {
                     // turn was flipped after makeMove, so the winner is the opposite
                     statusLabel->setText("X wins!");
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: green;");
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 // Check if AI won
-                if (checkWin(*gameState)) {
+                if (checkWin(*gameState) != 0) {
                     statusLabel->setText("O wins!");
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: red;");
                     *gameOver = true;

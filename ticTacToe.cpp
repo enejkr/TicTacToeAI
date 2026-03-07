@@ -3,24 +3,24 @@
 //
 
 #include "ticTacToe.h"
-bool checkWin(const BoardState &state) {
-    // Check rows, columns, and diagonals for a win
+// Returns 1 if X wins, 2 if O wins, 0 if no winner
+int checkWin(const BoardState &state) {
     for (int i = 0; i < 3; ++i) {
         if (state.board[i * 3] != 0 && state.board[i * 3] == state.board[i * 3 + 1] && state.board[i * 3 + 1] == state.
             board[i * 3 + 2]) {
-            return true;
+            return state.board[i * 3]; // vrne 1 ali 2
         }
         if (state.board[i] != 0 && state.board[i] == state.board[i + 3] && state.board[i + 3] == state.board[i + 6]) {
-            return true;
+            return state.board[i]; // vrne 1 ali 2
         }
     }
     if (state.board[0] != 0 && state.board[0] == state.board[4] && state.board[4] == state.board[8]) {
-        return true;
+        return state.board[0];
     }
     if (state.board[2] != 0 && state.board[2] == state.board[4] && state.board[4] == state.board[6]) {
-        return true;
+        return state.board[2];
     }
-    return false;
+    return 0;
 }
 
 void makeMove(BoardState &state, int x, int y) {
@@ -85,23 +85,12 @@ int basicEvaluation(const BoardState &state) {
 // beta: best score for minimizing player (O)
 // maximizingPlayer: true if it's X's turn, false if it's O's turn
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
-    //nemorem več uporabiti INT_MAX/INT_MIN (upoštevam globino) prej k zmaga boljš je
-    //X
-    {
-        BoardState tmp = state;
-        tmp.turn = 1;
-        if (checkWin(tmp)) {
-            return -1000 - depth;
-        }
-    }
-    //O
-    {
-        BoardState tmp = state;
-        tmp.turn = 2;
-        if (checkWin(tmp)) {
-            return 1000 + depth;
-        }
-    }
+
+    //check winner
+    int winner = checkWin(state);
+    if (winner == 1) return 1000 + depth;   // X zmaga → pozitivno
+    if (winner == 2) return -1000 - depth;  // O zmaga → negativno
+
     //preverim draw
     bool hasEmpty = false;
     for (int i = 0; i < 9; ++i) {
