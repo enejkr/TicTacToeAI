@@ -14,10 +14,14 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
-add_executable(TicTacToeAI main.cpp)
+add_executable(TicTacToeAI main.cpp
+        ticTacToe.cpp
+        ticTacToe.h)
 target_link_libraries(TicTacToeAI PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 
 # Qt test executable
-add_executable(QtTest qt_test.cpp)
+add_executable(QtTest mainGUI.cpp
+        ticTacToe.cpp
+        ticTacToe.h)
 target_link_libraries(QtTest PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 
