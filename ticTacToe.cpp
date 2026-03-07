@@ -73,25 +73,36 @@ int countFavorableLines(const BoardState &state, int player) {
 
 //basic heuristic function
 int basicEvaluation(const BoardState &state) {
-    if (checkWin(state)) {
-        return (state.turn == 1) ? -INT_MIN : INT_MAX;
-    }
-    // account for open lines
     int xLines = countFavorableLines(state, 1);
     int oLines = countFavorableLines(state, 2);
     return xLines - oLines;
 }
+
 // MinMax with alpha-beta pruning
 // state: current board state
 // depth: how many moves ahead to evaluate
-// alpha: best score for maximizing player
-// beta: best score for minimizing player
-// maximizingPlayer: true if it's the maximizing player's turn (X), false for minimizing player (O)
+// alpha: best score for maximizing player (X)
+// beta: best score for minimizing player (O)
+// maximizingPlayer: true if it's X's turn, false if it's O's turn
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
-    if (checkWin(state) || depth == 0) {
-        return basicEvaluation(state);
+    //nemorem več uporabiti INT_MAX/INT_MIN (upoštevam globino) prej k zmaga boljš je
+    //X
+    {
+        BoardState tmp = state;
+        tmp.turn = 1;
+        if (checkWin(tmp)) {
+            return 1000 + depth;
+        }
     }
-    // Check for draw (no empty cells)
+    //O
+    {
+        BoardState tmp = state;
+        tmp.turn = 2;
+        if (checkWin(tmp)) {
+            return -1000 - depth;
+        }
+    }
+    //preverim draw
     bool hasEmpty = false;
     for (int i = 0; i < 9; ++i) {
         if (state.board[i] == 0) {
@@ -99,22 +110,27 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
             break;
         }
     }
-    // draw or depth limit with no win
-    if (!hasEmpty || depth == 0) {
+
+    //draw ma vrednost 0
+    if (!hasEmpty) {
         return 0;
     }
+
+    if (depth == 0) {
+        return basicEvaluation(state);
+    }
+
     if (maximizingPlayer) {
         int max_eval = INT_MIN;
         for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
-                new_state.board[i] = 1;
+                new_state.board[i] = 1; // X igra
                 new_state.turn = 2;
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
                 max_eval = max(max_eval, eval);
                 alpha = max(alpha, eval);
-
-                if (beta <= alpha) break;
+                if (beta <= alpha) break; // beta cut-off
             }
         }
         return max_eval;
@@ -123,13 +139,12 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
         for (int i = 0; i < 9; ++i) {
             if (state.board[i] == 0) {
                 BoardState new_state = state;
-                new_state.board[i] = 2;
+                new_state.board[i] = 2; // O igra
                 new_state.turn = 1;
                 int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
                 min_eval = min(min_eval, eval);
                 beta = min(beta, eval);
-
-                if (beta <= alpha) break;
+                if (beta <= alpha) break; // alpha cut-off
             }
         }
         return min_eval;
