@@ -77,6 +77,11 @@ int basicEvaluation(const BoardState &state) {
     int oLines = countFavorableLines(state, 2);
     return xLines - oLines;
 }
+int advancedEvaluation(const BoardState &state) {
+
+    return 0;
+}
+
 // IIMPOTANT SMALLER IS BETTER FOR AI (O) AND LARGER IS BETTER FOR PLAYER (X)
 // MinMax with alpha-beta pruning
 // state: current board state

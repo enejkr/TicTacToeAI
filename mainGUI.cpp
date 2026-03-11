@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QSpinBox>
 #include <QWidget>
 #include <QMessageBox>
@@ -38,17 +39,18 @@ int main(int argc, char *argv[]) {
 
     QWidget window;
     window.setWindowTitle("Tic Tac Toe AI");
-    window.setFixedSize(780, 780);
-
+    window.setFixedSize(780, 900);
+    vector<int> resoult_counter(3, 0); // 0 = draw, 1 = X wins, 2 = O wins
     BoardState *gameState = new BoardState();
     bool *gameOver = new bool(false);
-
+    //Main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(&window);
 
+    //Status label
     QLabel *statusLabel = new QLabel("Set depth and press Play!", &window);
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
-
+    // settings layout dropdown for depth selection in sepret layout for future expansion
     QVBoxLayout *settingsLayout = new QVBoxLayout();
     QHBoxLayout *depthLayout = new QHBoxLayout();
     QSpinBox *depthSpinBox = new QSpinBox(&window);
@@ -63,6 +65,39 @@ int main(int argc, char *argv[]) {
     settingsLayout->setContentsMargins(0, 0, 0, 0);
     settingsLayout->setSpacing(0);
     settingsLayout->setAlignment(Qt::AlignCenter);
+
+    //Leaderboard
+    QVBoxLayout *leaderboardLayout = new QVBoxLayout();
+    leaderboardLayout->setSpacing(4);
+    leaderboardLayout->setAlignment(Qt::AlignCenter);
+
+    QLabel *leaderboardTitle = new QLabel("Leaderboard", &window);
+    leaderboardTitle->setAlignment(Qt::AlignCenter);
+    leaderboardTitle->setStyleSheet("font-size: 20px; font-weight: bold; margin-top: 8px;");
+
+    QLabel *xWinsLabel    = new QLabel("X (You)  wins: 0", &window);
+    QLabel *oWinsLabel    = new QLabel("O (AI)   wins: 0", &window);
+    QLabel *drawsLabel    = new QLabel("Draws:        0", &window);
+
+    QString leaderboardStyle = "font-size: 17px; font-family: monospace; padding: 2px 12px;";
+    xWinsLabel->setAlignment(Qt::AlignCenter);
+    oWinsLabel->setAlignment(Qt::AlignCenter);
+    drawsLabel->setAlignment(Qt::AlignCenter);
+    xWinsLabel->setStyleSheet(leaderboardStyle + " color: green;");
+    oWinsLabel->setStyleSheet(leaderboardStyle + " color: red;");
+    drawsLabel->setStyleSheet(leaderboardStyle);
+
+    leaderboardLayout->addWidget(leaderboardTitle);
+    leaderboardLayout->addWidget(xWinsLabel);
+    leaderboardLayout->addWidget(oWinsLabel);
+    leaderboardLayout->addWidget(drawsLabel);
+
+    // Helper lambda to refresh leaderboard
+    auto updateLeaderboard = [&resoult_counter, xWinsLabel, oWinsLabel, drawsLabel]() mutable {
+        xWinsLabel->setText(QString("X (You)  wins: %1").arg(static_cast<int>(resoult_counter[1])));
+        oWinsLabel->setText(QString("O (AI)   wins: %1").arg(static_cast<int>(resoult_counter[2])));
+        drawsLabel->setText(QString("Draws:        %1").arg(static_cast<int>(resoult_counter[0])));
+    };
 
     QGridLayout *gridLayout = new QGridLayout();
     gridLayout->setSpacing(5);
@@ -92,7 +127,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < 9; ++i) {
         QObject::connect(buttons[i], &QPushButton::clicked,
-            [i, gameState, gameOver, &buttons, depthSpinBox, statusLabel, playButton, newDepthButton]() {
+            [i, gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, statusLabel, playButton, updateLeaderboard]() mutable {
                 if (*gameOver) return;
                 if (gameState->turn != 1) return;
                 if (gameState->board[i] != 0) return;
@@ -102,8 +137,9 @@ int main(int argc, char *argv[]) {
 
                 // Check if player won
                 if (checkWin(*gameState) != 0) {
-                    // turn was flipped after makeMove, so the winner is the opposite
                     statusLabel->setText("X wins!");
+                    resoult_counter[1]++;
+                    updateLeaderboard();
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: green;");
                     *gameOver = true;
                     disableAllButtons(buttons);
@@ -112,6 +148,8 @@ int main(int argc, char *argv[]) {
                 }
                 // Check draw
                 if (isBoardFull(*gameState)) {
+                    resoult_counter[0]++;
+                    updateLeaderboard();
                     statusLabel->setText("It's a draw!");
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
                     *gameOver = true;
@@ -147,6 +185,8 @@ int main(int argc, char *argv[]) {
                 // Check if AI won
                 if (checkWin(*gameState) != 0) {
                     statusLabel->setText("O wins!");
+                    resoult_counter[2]++;
+                    updateLeaderboard();
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px; color: red;");
                     *gameOver = true;
                     disableAllButtons(buttons);
@@ -156,6 +196,8 @@ int main(int argc, char *argv[]) {
                 // Check draw after AI move
                 if (isBoardFull(*gameState)) {
                     statusLabel->setText("It's a draw!");
+                    resoult_counter[0]++;
+                    updateLeaderboard();
                     statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
                     *gameOver = true;
                     disableAllButtons(buttons);
@@ -171,13 +213,11 @@ int main(int argc, char *argv[]) {
     // Play / Reset button
     QObject::connect(playButton, &QPushButton::clicked,
         [gameState, gameOver, &buttons, depthSpinBox, depthLabel, playButton, statusLabel, newDepthButton]() {
-            // Reset game state
             for (int i = 0; i < 9; ++i)
                 gameState->board[i] = 0;
             gameState->turn = 1;
             *gameOver = false;
 
-            // Reset UI
             updateButtons(*gameState, buttons);
             for (auto *btn : buttons)
                 btn->setEnabled(true);
@@ -190,16 +230,19 @@ int main(int argc, char *argv[]) {
             statusLabel->setStyleSheet("font-size: 50px; font-weight: bold; margin: 10px;");
         });
 
-    // Set New Depth button - resets everything back to initial state
+    // Set New Depth button - resets everything back to initial state (also resets leaderboard)
     QObject::connect(newDepthButton, &QPushButton::clicked,
-        [gameState, gameOver, &buttons, depthSpinBox, depthLabel, playButton, newDepthButton, statusLabel]() {
-            // Reset game state
+        [gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, depthLabel, playButton, newDepthButton, statusLabel,
+         updateLeaderboard]() mutable {
             for (int i = 0; i < 9; ++i)
                 gameState->board[i] = 0;
             gameState->turn = 1;
             *gameOver = false;
 
-            // Reset UI to initial state
+            // Reset leaderboard counters
+            resoult_counter[0] = resoult_counter[1] = resoult_counter[2] = 0;
+            updateLeaderboard();
+
             updateButtons(*gameState, buttons);
             disableAllButtons(buttons);
 
@@ -216,8 +259,10 @@ int main(int argc, char *argv[]) {
     buttonLayout->addWidget(playButton);
     buttonLayout->addWidget(newDepthButton);
 
+    //final composition of layouts
     mainLayout->addWidget(statusLabel);
     mainLayout->addLayout(settingsLayout);
+    mainLayout->addLayout(leaderboardLayout);
     mainLayout->addLayout(centerLayout);
     mainLayout->addLayout(buttonLayout);
 

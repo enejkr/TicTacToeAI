@@ -20,6 +20,7 @@ void makeMove(BoardState &state, int x, int y);
 void makeMove(BoardState &state, int index);
 int countFavorableLines(const BoardState &state, int player);
 int basicEvaluation(const BoardState &state);
+int advancedEvaluation(const BoardState &state);
 int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer);
 
 #endif //TICTACTOEAI_TICTACTOE_H
