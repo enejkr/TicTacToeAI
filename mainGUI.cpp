@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QSpinBox>
+#include <QComboBox>
 #include <QWidget>
 #include <QMessageBox>
 #include <vector>
@@ -62,6 +63,20 @@ int main(int argc, char *argv[]) {
     depthLayout->addWidget(depthLabel);
     depthLayout->addWidget(depthSpinBox);
     settingsLayout->addLayout(depthLayout);
+
+    // Heuristic selection
+    QHBoxLayout *heuristicLayout = new QHBoxLayout();
+    QLabel *heuristicLabel = new QLabel("Select Heuristic: ", &window);
+    heuristicLabel->setStyleSheet("font-size: 16px;");
+    QComboBox *heuristicComboBox = new QComboBox(&window);
+    heuristicComboBox->addItem("Navadna hevristika");
+    heuristicComboBox->addItem("Napadalna hevristika");
+    heuristicComboBox->setFixedHeight(50);
+    heuristicComboBox->setStyleSheet("font-size: 12pt;");
+    heuristicLayout->addWidget(heuristicLabel);
+    heuristicLayout->addWidget(heuristicComboBox);
+    settingsLayout->addLayout(heuristicLayout);
+
     settingsLayout->setContentsMargins(0, 0, 0, 0);
     settingsLayout->setSpacing(0);
     settingsLayout->setAlignment(Qt::AlignCenter);
@@ -93,10 +108,10 @@ int main(int argc, char *argv[]) {
     leaderboardLayout->addWidget(drawsLabel);
 
     // Helper lambda to refresh leaderboard
-    auto updateLeaderboard = [&resoult_counter, xWinsLabel, oWinsLabel, drawsLabel]() mutable {
-        xWinsLabel->setText(QString("X (You)  wins: %1").arg(static_cast<int>(resoult_counter[1])));
-        oWinsLabel->setText(QString("O (AI)   wins: %1").arg(static_cast<int>(resoult_counter[2])));
-        drawsLabel->setText(QString("Draws:        %1").arg(static_cast<int>(resoult_counter[0])));
+    auto updateLeaderboard = [&resoult_counter, xWinsLabel, oWinsLabel, drawsLabel]() {
+        xWinsLabel->setText(QString("X (You)  wins: %1").arg(resoult_counter[1]));
+        oWinsLabel->setText(QString("O (AI)   wins: %1").arg(resoult_counter[2]));
+        drawsLabel->setText(QString("Draws:        %1").arg(resoult_counter[0]));
     };
 
     QGridLayout *gridLayout = new QGridLayout();
@@ -127,7 +142,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < 9; ++i) {
         QObject::connect(buttons[i], &QPushButton::clicked,
-            [i, gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, statusLabel, playButton, updateLeaderboard]() mutable {
+            [i, gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, heuristicComboBox, statusLabel, playButton, updateLeaderboard]() mutable {
                 if (*gameOver) return;
                 if (gameState->turn != 1) return;
                 if (gameState->board[i] != 0) return;
@@ -161,6 +176,7 @@ int main(int argc, char *argv[]) {
                 // AI turn (O = 2, minimizing player)
                 statusLabel->setText("AI is thinking...");
                 int depth = depthSpinBox->value();
+                bool useAdvanced = (heuristicComboBox->currentIndex() == 1);
                 int best_score = INT_MAX;
                 bool is_best_empty = true;
                 int best_move = -1;
@@ -169,7 +185,7 @@ int main(int argc, char *argv[]) {
                         BoardState new_state = *gameState;
                         new_state.board[j] = 2;
                         new_state.turn = 1;
-                        int score = maksMinAlfaBeta(new_state, depth - 1, INT_MIN, INT_MAX, true);
+                        int score = maksMinAlfaBeta(new_state, depth - 1, INT_MIN, INT_MAX, true, useAdvanced);
                         if (score < best_score || is_best_empty) {
                             best_score = score;
                             best_move = j;
@@ -212,7 +228,7 @@ int main(int argc, char *argv[]) {
 
     // Play / Reset button
     QObject::connect(playButton, &QPushButton::clicked,
-        [gameState, gameOver, &buttons, depthSpinBox, depthLabel, playButton, statusLabel, newDepthButton]() {
+        [gameState, gameOver, &buttons, depthSpinBox, depthLabel, heuristicComboBox, heuristicLabel, playButton, statusLabel, newDepthButton]() {
             for (int i = 0; i < 9; ++i)
                 gameState->board[i] = 0;
             gameState->turn = 1;
@@ -224,6 +240,8 @@ int main(int argc, char *argv[]) {
 
             depthSpinBox->setEnabled(false);
             depthLabel->setEnabled(false);
+            heuristicComboBox->setEnabled(false);
+            heuristicLabel->setEnabled(false);
             playButton->setText("Restart");
             newDepthButton->setEnabled(true);
             statusLabel->setText("Your turn (X)");
@@ -232,7 +250,7 @@ int main(int argc, char *argv[]) {
 
     // Set New Depth button - resets everything back to initial state (also resets leaderboard)
     QObject::connect(newDepthButton, &QPushButton::clicked,
-        [gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, depthLabel, playButton, newDepthButton, statusLabel,
+        [gameState, gameOver, &buttons, &resoult_counter, depthSpinBox, depthLabel, heuristicComboBox, heuristicLabel, playButton, newDepthButton, statusLabel,
          updateLeaderboard]() mutable {
             for (int i = 0; i < 9; ++i)
                 gameState->board[i] = 0;
@@ -248,6 +266,8 @@ int main(int argc, char *argv[]) {
 
             depthSpinBox->setEnabled(true);
             depthLabel->setEnabled(true);
+            heuristicComboBox->setEnabled(true);
+            heuristicLabel->setEnabled(true);
             playButton->setText("Play");
             playButton->setEnabled(true);
             newDepthButton->setEnabled(false);

@@ -70,6 +70,36 @@ int countFavorableLines(const BoardState &state, int player) {
 
     return count;
 }
+// same as before but needs to be atleast 2 symbols of the same player to be counted as favorable line and is worth 10 points instead of 1
+int countFavorableLinesTwoSimbols(const BoardState &state, int player) {
+    int opponent = (player == 1) ? 2 : 1;
+    int count = 0;
+
+    auto lineOpen = [&](int a, int b, int c) -> bool {
+        return state.board[a] != opponent &&
+               state.board[b] != opponent &&
+               state.board[c] != opponent &&
+               (state.board[a] == player && state.board[b] == player||
+                state.board[a] == player && state.board[c] == player||
+                state.board[b] == player && state.board[c] == player);
+    };
+
+    for (int i = 0; i < 3; i++) {
+        //row
+        if (lineOpen(i * 3, i * 3 + 1, i * 3 + 2)) {
+            count += 10;
+        }
+        // columns
+        if (lineOpen(i, i + 3, i + 6)) {
+            count += 10;
+        }
+    }
+    // diagonals
+    if (lineOpen(0, 4, 8)) count += 10;
+    if (lineOpen(2, 4, 6)) count += 10;
+
+    return count;
+}
 
 //basic heuristic function
 int basicEvaluation(const BoardState &state) {
@@ -77,9 +107,22 @@ int basicEvaluation(const BoardState &state) {
     int oLines = countFavorableLines(state, 2);
     return xLines - oLines;
 }
+//advanced heuristic function aka napadalna
 int advancedEvaluation(const BoardState &state) {
+    //old heuristic just lines
+    int output = 0;
+    int xLines = countFavorableLines(state, 1);
+    int oLines = countFavorableLines(state, 2);
+    output += xLines - oLines;
 
-    return 0;
+    // Dodatna heuristika: kontrola centra
+    if (state.board[4] == 1) output += 500; // center control
+    else if (state.board[4] == 2) output -= 500;
+    // also for lines that have at least 2 symbols of the same player
+    int xLinesTwo = countFavorableLinesTwoSimbols(state, 1);
+    int oLinesTwo = countFavorableLinesTwoSimbols(state, 2);
+    output += xLinesTwo - oLinesTwo; // linije z vsaj 2 simboloma
+    return output;
 }
 
 // IIMPOTANT SMALLER IS BETTER FOR AI (O) AND LARGER IS BETTER FOR PLAYER (X)
@@ -89,7 +132,7 @@ int advancedEvaluation(const BoardState &state) {
 // alpha: best score for maximizing player (X)
 // beta: best score for minimizing player (O)
 // maximizingPlayer: true if it's X's turn, false if it's O's turn
-int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer) {
+int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maximizingPlayer, bool useAdvancedHeuristic) {
 
     //check winner
     int winner = checkWin(state);
@@ -111,7 +154,11 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
     }
 
     if (depth == 0) {
-        return basicEvaluation(state);
+        if (useAdvancedHeuristic) {
+            return advancedEvaluation(state);
+        } else {
+            return basicEvaluation(state);
+        }
     }
     // X igra
     if (maximizingPlayer) {
@@ -121,7 +168,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
                 BoardState new_state = state;
                 new_state.board[i] = 1;
                 new_state.turn = 2;
-                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false);
+                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, false, useAdvancedHeuristic);
                 max_eval = max(max_eval, eval);
                 alpha = max(alpha, eval);
                 if (beta <= alpha) break;
@@ -137,7 +184,7 @@ int maksMinAlfaBeta(BoardState &state, int depth, int alpha, int beta, bool maxi
                 BoardState new_state = state;
                 new_state.board[i] = 2;
                 new_state.turn = 1;
-                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true);
+                int eval = maksMinAlfaBeta(new_state, depth - 1, alpha, beta, true, useAdvancedHeuristic);
                 min_eval = min(min_eval, eval);
                 beta = min(beta, eval);
                 if (beta <= alpha) break;
